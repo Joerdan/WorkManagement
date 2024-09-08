@@ -220,9 +220,11 @@
             </select>
             <select id="shiftSelector">
                 <option value="">Select Shift</option>
-                <option value="7:00 AM">7:00 AM</option>
-                <option value="3:00 PM">3:00 PM</option>
-                <option value="11:00 PM">11:00 PM</option>
+                <option value="7:00 AM - 4:00 PM">7:00 AM - 4:00 PM</option>
+                <option value="8:00 AM - 5:00 PM">8:00 AM - 5:00 PM</option>
+                <option value="9:00 AM - 6:00 PM">9:00 AM - 6:00 PM</option>
+                <option value="10:00 AM - 7:00 PM">10:00 AM - 7:00 PM</option>
+                <option value="11:00 AM - 8:00 PM">11:00 AM - 8:00 PM</option>
                 <option value="off">Off</option>
             </select>
             <button onclick="setWeeklyShift()">Set Shift</button>
@@ -563,47 +565,6 @@
             updateDisplay();
         }
 
-        function createCalendarLinks() {
-            const monthKey = getCurrentMonthKey();
-            const week = parseInt(document.getElementById('weekSelector').value);
-            const autoOpen = document.getElementById('autoOpenLinks').checked;
-            const links = [];
-
-            for (let day = 0; day < 7; day++) {
-                const shift = monthlyShifts[monthKey]?.[week]?.[day];
-                if (shift && shift !== 'off') {
-                    const date = new Date(currentYear, currentMonth, (week - 1) * 7 + day + 1);
-                    const formattedDate = date.toISOString().replace(/-|:|\.\d\d\d/g,"");
-                    const [hours, minutes, period] = shift.split(/:|\s/);
-                    let startHour = parseInt(hours);
-                    if (period === 'PM' && startHour !== 12) startHour += 12;
-                    if (period === 'AM' && startHour === 12) startHour = 0;
-                    date.setHours(startHour, parseInt(minutes), 0, 0);
-                    const endDate = new Date(date.getTime() + 8*60*60*1000); // 8 hours later
-                    const formattedEndDate = endDate.toISOString().replace(/-|:|\.\d\d\d/g,"");
-                    const eventTitle = `Work Shift: ${shift}`;
-                    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedDate}/${formattedEndDate}`;
-                    links.push(calendarUrl);
-                }
-            }
-
-            if (links.length > 0) {
-                if (autoOpen) {
-                    links.forEach(link => window.open(link, '_blank'));
-                } else {
-                    const linksDiv = document.createElement('div');
-                    linksDiv.innerHTML = links.map((link, index) => `
-                        <p>
-                            <a href="${link}" target="_blank">Add shift ${index + 1} to calendar</a>
-                        </p>
-                    `).join('');
-                    document.getElementById('calendarLinks').appendChild(linksDiv);
-                }
-            } else {
-                alert('No shifts set for this week');
-            }
-        }
-
         function toggleHolidayDoublePay(date) {
             const dateString = date.toISOString().split('T')[0];
             holidayDoublePayDays[dateString] = !holidayDoublePayDays[dateString];
@@ -713,6 +674,52 @@
                 alert('Backup created successfully');
             } else {
                 alert('No data to backup');
+            }
+        }
+
+        function createCalendarLinks() {
+            const monthKey = getCurrentMonthKey();
+            const week = parseInt(document.getElementById('weekSelector').value);
+            const autoOpen = document.getElementById('autoOpenLinks').checked;
+            const links = [];
+
+            for (let day = 0; day < 7; day++) {
+                const shift = monthlyShifts[monthKey]?.[week]?.[day];
+                if (shift && shift !== 'off') {
+                    const date = new Date(currentYear, currentMonth, (week - 1) * 7 + day + 1);
+                    const [startTime, endTime] = shift.split(' - ');
+                    const [startHours, startMinutes] = startTime.split(':');
+                    const [endHours, endMinutes] = endTime.split(':');
+                    
+                    const startDate = new Date(date);
+                    startDate.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+                    
+                    const endDate = new Date(date);
+                    endDate.setHours(parseInt(endHours) + 12, parseInt(endMinutes), 0, 0); // Add 12 to convert to 24-hour format
+                    
+                    const formattedStartDate = startDate.toISOString().replace(/-|:|\.\d\d\d/g,"");
+                    const formattedEndDate = endDate.toISOString().replace(/-|:|\.\d\d\d/g,"");
+                    
+                    const eventTitle = `Work Shift: ${shift}`;
+                    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedStartDate}/${formattedEndDate}`;
+                    links.push(calendarUrl);
+                }
+            }
+
+            if (links.length > 0) {
+                if (autoOpen) {
+                    links.forEach(link => window.open(link, '_blank'));
+                } else {
+                    const linksDiv = document.createElement('div');
+                    linksDiv.innerHTML = links.map((link, index) => `
+                        <p>
+                            <a href="${link}" target="_blank">Add shift ${index + 1} to calendar</a>
+                        </p>
+                    `).join('');
+                    document.getElementById('calendarLinks').appendChild(linksDiv);
+                }
+            } else {
+                alert('No shifts set for this week');
             }
         }
 
