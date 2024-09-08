@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Personal Finance Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #bb86fc;
+        }
+        input, select, button {
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #03dac6;
+            color: #000;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #018786;
+        }
+        .category-select {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .delete-btn {
+            background-color: #cf6679;
+            color: #000;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            background-color: #b54a5a;
+        }
+        #summary, #spendingList {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .calendar-day {
+            background-color: #333;
+            padding: 10px;
+            text-align: center;
+            border-radius: 4px;
+            position: relative;
+            min-height: 60px;
+        }
+        .calendar-day .day-of-week {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 10px;
+            color: #888;
+        }
+        .calendar-day .date {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .calendar-day.weekend {
+            background-color: #444;
+        }
+        .calendar-day.holiday {
+            background-color: #bb86fc;
+            color: #000;
+        }
+        .calendar-day input[type="checkbox"] {
+            margin-top: 5px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .calendar-nav {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .calendar-day.current-day {
+            border: 2px solid #03dac6;
+        }
+        .calendar-day select {
+            margin-top: 5px;
+            width: 100%;
+        }
+        .holiday-name {
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .shift-selector {
+            margin-bottom: 20px;
+        }
+        .shift-selector select {
+            margin-right: 10px;
+        }
+        .calendar-day .shift-time {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .calendar-day.off-day {
+            background-color: #cf6679;
+        }
+        .holiday-toggle {
+            font-size: 10px;
+            margin-top: 2px;
+        }
+        .holiday-toggle input {
+            margin-right: 2px;
+        }
+        .quarter-bonus {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+        }
+        #categoryChartContainer {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+        #calendarLinks {
+            margin-top: 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Personal Finance Manager</h1>
+        
+        <h2>Salary Information</h2>
+        <input type="number" id="baseSalary" placeholder="Base Salary per Month" value="2400">
+        <input type="number" id="workDays" placeholder="Work Days per Month" value="22">
+        <input type="number" id="hoursPerShift" placeholder="Hours per Shift" value="9">
+        <button onclick="updateSalary()">Update Salary Info</button>
+        
+        <div class="quarter-bonus">
+            <label>
+                <input type="checkbox" id="isQuarterMonth" onchange="toggleQuarterMonth()">
+                This is a quarter month
+            </label>
+            <input type="number" id="quarterBonus" placeholder="Quarterly Bonus" min="0" max="600" step="1" disabled>
+            <button onclick="updateQuarterBonus()" disabled>Add Bonus</button>
+        </div>
+        
+        <h2>Add Spending</h2>
+        <input type="text" id="spendingDescription" placeholder="Description">
+        <input type="number" id="spendingAmount" placeholder="Amount">
+        <select id="spendingCategory" class="category-select">
+            <option value="Food">Food</option>
+            <option value="Transportation">Transportation</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Other">Other</option>
+        </select>
+        <button onclick="addSpending()">Add Spending</button>
+        
+        <div id="summary"></div>
+        
+        <h2>Spending List</h2>
+        <div id="spendingList"></div>
+
+        <h2>Spending Summary</h2>
+        <div id="categoryChartContainer">
+            <canvas id="categoryChart"></canvas>
+        </div>
+
+        <h2>Weekly Shift Selection</h2>
+        <div class="shift-selector">
+            <select id="weekSelector">
+                <option value="1">Week 1</option>
+                <option value="2">Week 2</option>
+                <option value="3">Week 3</option>
+                <option value="4">Week 4</option>
+                <option value="5">Week 5</option>
+            </select>
+            <select id="daySelector">
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+            </select>
+            <select id="shiftSelector">
+                <option value="">Select Shift</option>
+                <option value="7:00 AM - 4:00 PM">7:00 AM - 4:00 PM</option>
+                <option value="8:00 AM - 5:00 PM">8:00 AM - 5:00 PM</option>
+                <option value="9:00 AM - 6:00 PM">9:00 AM - 6:00 PM</option>
+                <option value="10:00 AM - 7:00 PM">10:00 AM - 7:00 PM</option>
+                <option value="11:00 AM - 8:00 PM">11:00 AM - 8:00 PM</option>
+                <option value="off">Off</option>
+            </select>
+            <button onclick="setWeeklyShift()">Set Shift</button>
+        </div>
+        
+        <div id="calendarLinks">
+            <button onclick="createCalendarLinks()">Create Calendar Links</button>
+            <label>
+                <input type="checkbox" id="autoOpenLinks"> Auto-open links
+            </label>
+        </div>
+        
+        <h2>Work Calendar</h2>
+        <div class="calendar-header">
+            <span class="calendar-nav" onclick="changeMonth(-1)">&#9664;</span>
+            <span id="currentMonthYear"></span>
+            <span class="calendar-nav" onclick="changeMonth(1)">&#9654;</span>
+        </div>
+        <div id="calendar" class="calendar"></div>
+
+        <h2>Data Management</h2>
+        <button onclick="exportData()">Export Data</button>
+        <input type="file" id="importFile" accept=".json" style="display: none;">
+        <button onclick="document.getElementById('importFile').click()">Import Data</button>
+        <button onclick="createBackup()">Create Backup</button>
+    </div>
+
+    <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let monthlyShifts = {};
+        let monthlySpending = {};
+        let monthlySalaryInfo = {};
+        let lebanonHolidays = [];
+        let holidayDoublePayDays = {};
+        let monthlyQuarterInfo = {};
+        let categoryChart;
+
+        function saveData() {
+            try {
+                const data = {
+                    monthlyShifts,
+                    monthlySpending,
+                    monthlySalaryInfo,
+                    holidayDoublePayDays,
+                    monthlyQuarterInfo,
+                    version: '1.0'
+                };
+                localStorage.setItem('financeAppData', JSON.stringify(data));
+                console.log('Data saved successfully');
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('There was an error saving your data. Please try again or export your data as a backup.');
+            }
+        }
+
+        function loadData() {
+            try {
+                const data = JSON.parse(localStorage.getItem('financeAppData'));
+                if (data && data.version === '1.0') {
+                    monthlyShifts = data.monthlyShifts || {};
+                    monthlySpending = data.monthlySpending || {};
+                    monthlySalaryInfo = data.monthlySalaryInfo || {};
+                    holidayDoublePayDays = data.holidayDoublePayDays || {};
+                    monthlyQuarterInfo = data.monthlyQuarterInfo || {};
+                    console.log('Data loaded successfully');
+                } else {
+                    console.log('No saved data found or incompatible version');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('There was an error loading your data. If this persists, try importing a backup.');
+            }
+        }
+
+        function getCurrentMonthKey() {
+            return `${currentYear}-${currentMonth}`;
+        }
+
+        async function fetchLebanonHolidays() {
+            const apiKey = '6pCMc7VjipQxVxOwVy0F5HyKBer0AhcT';
+            const url = `https://calendarific.com/api/v2/holidays?api_key=${apiKey}&country=LB&year=${currentYear}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                lebanonHolidays = data.response.holidays.map(holiday => ({
+                    date: new Date(holiday.date.iso).toDateString(),
+                    name: holiday.name
+                }));
+            } catch (error) {
+                console.error('Error fetching Lebanon holidays:', error);
+            }
+        }
+
+        function updateSalary() {
+            const monthKey = getCurrentMonthKey();
+            monthlySalaryInfo[monthKey] = monthlySalaryInfo[monthKey] || {};
+            monthlySalaryInfo[monthKey].baseSalary = parseFloat(document.getElementById('baseSalary').value);
+            monthlySalaryInfo[monthKey].workDays = parseInt(document.getElementById('workDays').value);
+            monthlySalaryInfo[monthKey].hoursPerShift = parseFloat(document.getElementById('hoursPerShift').value);
+            calculateSalary();
+            updateDisplay();
+            saveData();
+        }
+
+        function calculateSalary() {
+            const monthKey = getCurrentMonthKey();
+            const salaryInfo = monthlySalaryInfo[monthKey] || {baseSalary: 0, workDays: 22, hoursPerShift: 8};
+            let regularHours = 0;
+            let holidayHours = 0;
+
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const date = new Date(currentYear, currentMonth, i);
+                const dayOfWeek = date.getDay();
+                const weekOfMonth = Math.ceil(i / 7);
+                const shift = monthlyShifts[monthKey]?.[weekOfMonth]?.[dayOfWeek] || '';
+
+                if (shift && shift !== 'off') {
+                    const isHoliday = lebanonHolidays.some(holiday => holiday.date === date.toDateString());
+                    const dateString = date.toISOString().split('T')[0];
+                    if (isHoliday && holidayDoublePayDays[dateString]) {
+                        holidayHours += salaryInfo.hoursPerShift;
+                    } else {
+                        regularHours += salaryInfo.hoursPerShift;
+                    }
+                }
+            }
+
+            const hourlyRate = salaryInfo.baseSalary / (salaryInfo.workDays * salaryInfo.hoursPerShift);
+            const regularPay = regularHours * hourlyRate;
+            const holidayPay = holidayHours * hourlyRate * 2;
+            const quarterBonus = monthlyQuarterInfo[monthKey]?.bonus || 0;
+            const totalSalary = regularPay + holidayPay + quarterBonus;
+
+            monthlySalaryInfo[monthKey].calculatedSalary = totalSalary;
+            monthlySalaryInfo[monthKey].regularHours = regularHours;
+            monthlySalaryInfo[monthKey].holidayHours = holidayHours;
+            monthlySalaryInfo[monthKey].hourlyRate = hourlyRate;
+            saveData();
+        }
+
+        function addSpending() {
+            const monthKey = getCurrentMonthKey();
+            const description = document.getElementById('spendingDescription').value;
+            const amount = parseFloat(document.getElementById('spendingAmount').value);
+            const category = document.getElementById('spendingCategory').value;
+            
+            if (description && amount && category) {
+                monthlySpending[monthKey] = monthlySpending[monthKey] || [];
+                monthlySpending[monthKey].push({ description, amount, category, date: new Date().toISOString() });
+                saveData();
+                updateDisplay();
+                document.getElementById('spendingDescription').value = '';
+                document.getElementById('spendingAmount').value = '';
+            }
+        }
+
+        function deleteSpending(index) {
+            const monthKey = getCurrentMonthKey();
+            monthlySpending[monthKey].splice(index, 1);
+            saveData();
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const monthKey = getCurrentMonthKey();
+            const summary = document.getElementById('summary');
+            const spendingList = document.getElementById('spendingList');
+            
+            const spendings = monthlySpending[monthKey] || [];
+            const salaryInfo = monthlySalaryInfo[monthKey] || {baseSalary: 0, workDays: 22, hoursPerShift: 8, calculatedSalary: 0, regularHours: 0, holidayHours: 0, hourlyRate: 0};
+            const quarterInfo = monthlyQuarterInfo[monthKey] || { isQuarterMonth: false, bonus: 0 };
+            
+            const totalSpending = spendings.reduce((total, spending) => total + spending.amount, 0);
+            const remainingMoney = salaryInfo.calculatedSalary - totalSpending;
+            
+            summary.innerHTML = `
+                <h2>Summary for ${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} ${currentYear}</h2>
+                <p>Hourly Rate: $${salaryInfo.hourlyRate.toFixed(2)}</p>
+                <p>Regular Hours: ${salaryInfo.regularHours} ($${(salaryInfo.regularHours * salaryInfo.hourlyRate).toFixed(2)})</p>
+                <p>Holiday Hours: ${salaryInfo.holidayHours} ($${(salaryInfo.holidayHours * salaryInfo.hourlyRate * 2).toFixed(2)})</p>
+                <p>Monthly Salary (including holidays): $${salaryInfo.calculatedSalary.toFixed(2)}</p>
+                ${quarterInfo.isQuarterMonth ? `<p>Quarterly Bonus: $${quarterInfo.bonus.toFixed(2)}</p>` : ''}
+                <p>Total Spending: $${totalSpending.toFixed(2)}</p>
+                <p>Remaining Money: $${remainingMoney.toFixed(2)}</p>
+            `;
+            
+            spendingList.innerHTML = spendings.map((spending, index) => `
+                <p>
+                    ${spending.description}: $${spending.amount.toFixed(2)} 
+                    (${new Date(spending.date).toLocaleDateString()}) - ${spending.category}
+                    <button class="delete-btn" onclick="deleteSpending(${index})">Delete</button>
+                </p>
+            `).join('');
+
+            document.getElementById('baseSalary').value = salaryInfo.baseSalary;
+            document.getElementById('workDays').value = salaryInfo.workDays;
+            document.getElementById('hoursPerShift').value = salaryInfo.hoursPerShift;
+            document.getElementById('isQuarterMonth').checked = quarterInfo.isQuarterMonth;
+            document.getElementById('quarterBonus').value = quarterInfo.bonus || '';
+            document.getElementById('quarterBonus').disabled = !quarterInfo.isQuarterMonth;
+            document.querySelector('.quarter-bonus button').disabled = !quarterInfo.isQuarterMonth;
+
+            updateCategoryChart(spendings);
+        }
+
+        function updateCategoryChart(spendings) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const categoryTotals = spendings.reduce((totals, spending) => {
+                totals[spending.category] = (totals[spending.category] || 0) + spending.amount;
+                return totals;
+            }, {});
+
+            const data = {
+                labels: Object.keys(categoryTotals),
+                datasets: [{
+                    data: Object.values(categoryTotals),
+                    backgroundColor: [
+                        '#bb86fc', '#03dac6', '#cf6679', '#ffb74d', '#4fc3f7'
+                    ]
+                }]
+            };
+
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+
+            categoryChart = new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    title: {
+                        display: true,
+                        text: 'Spending by Category'
+                    }
+                }
+            });
+        }
+
+        function renderCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+            
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            
+            document.getElementById('currentMonthYear').textContent = `${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} ${currentYear}`;
+            
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            // Add empty cells for days before the 1st of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('calendar-day');
+                calendarEl.appendChild(emptyDay);
+            }
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const date = new Date(currentYear, currentMonth, i);
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('calendar-day');
+                
+                if (date.getDay() === 0 || date.getDay() === 6) {
+                    dayEl.classList.add('weekend');
+                }
+                
+                const holiday = lebanonHolidays.find(h => h.date === date.toDateString());
+                if (holiday) {
+                    dayEl.classList.add('holiday');
+                }
+                
+                if (date.toDateString() === new Date().toDateString()) {
+                    dayEl.classList.add('current-day');
+                }
+                
+                const weekOfMonth = Math.ceil(i / 7);
+                const shift = monthlyShifts[getCurrentMonthKey()]?.[weekOfMonth]?.[date.getDay()] || '';
+                
+                if (shift === 'off') {
+                    dayEl.classList.add('off-day');
+                }
+                
+                const dateString = date.toISOString().split('T')[0];
+                const holidayToggle = holiday ? `
+                    <div class="holiday-toggle">
+                        <input type="checkbox" id="holiday-${dateString}" 
+                               ${holidayDoublePayDays[dateString] ? 'checked' : ''}
+                               onchange="toggleHolidayDoublePay(new Date('${dateString}'))">
+                        <label for="holiday-${dateString}">Double Pay</label>
+                    </div>
+                ` : '';
+                
+                dayEl.innerHTML = `
+                    <div class="day-of-week">${weekdays[date.getDay()]}</div>
+                    <div class="date">${i}</div>
+                    ${holiday ? `<div class="holiday-name">${holiday.name}</div>` : ''}
+                    <div class="shift-time">${shift}</div>
+                    ${holidayToggle}
+                `;
+                
+                calendarEl.appendChild(dayEl);
+            }
+        }
+
+        function changeMonth(delta) {
+            currentMonth += delta;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            fetchLebanonHolidays().then(() => {
+                renderCalendar();
+                calculateSalary();
+                updateDisplay();
+            });
+        }
+
+        function setWeeklyShift() {
+            const monthKey = getCurrentMonthKey();
+            const week = parseInt(document.getElementById('weekSelector').value);
+            const day = parseInt(document.getElementById('daySelector').value);
+            const shift = document.getElementById('shiftSelector').value;
+            
+            monthlyShifts[monthKey] = monthlyShifts[monthKey] || {};
+            monthlyShifts[monthKey][week] = monthlyShifts[monthKey][week] || Array(7).fill('');
+            monthlyShifts[monthKey][week][day] = shift;
+            
+            saveData();
+            renderCalendar();
+            calculateSalary();
+            updateDisplay();
+        }
+
+        function toggleHolidayDoublePay(date) {
+            const dateString = date.toISOString().split('T')[0];
+            holidayDoublePayDays[dateString] = !holidayDoublePayDays[dateString];
+            calculateSalary();
+            updateDisplay();
+        }
+
+        function toggleQuarterMonth() {
+            const monthKey = getCurrentMonthKey();
+            const isQuarterMonth = document.getElementById('isQuarterMonth').checked;
+            const bonusInput = document.getElementById('quarterBonus');
+            const bonusButton = document.querySelector('.quarter-bonus button');
+
+            monthlyQuarterInfo[monthKey] = monthlyQuarterInfo[monthKey] || { isQuarterMonth: false, bonus: 0 };
+            monthlyQuarterInfo[monthKey].isQuarterMonth = isQuarterMonth;
+
+            bonusInput.disabled = !isQuarterMonth;
+            bonusButton.disabled = !isQuarterMonth;
+
+            if (!isQuarterMonth) {
+                monthlyQuarterInfo[monthKey].bonus = 0;
+                bonusInput.value = '';
+            }
+
+            saveData();
+            calculateSalary();
+            updateDisplay();
+        }
+
+        function updateQuarterBonus() {
+            const monthKey = getCurrentMonthKey();
+            const bonus = Math.min(600, Math.max(0, parseFloat(document.getElementById('quarterBonus').value) || 0));
+            
+            monthlyQuarterInfo[monthKey] = monthlyQuarterInfo[monthKey] || { isQuarterMonth: true, bonus: 0 };
+            monthlyQuarterInfo[monthKey].bonus = bonus;
+
+            saveData();
+            calculateSalary();
+            updateDisplay();
+        }
+
+        function exportData() {
+            const data = {
+                monthlyShifts,
+                monthlySpending,
+                monthlySalaryInfo,
+                holidayDoublePayDays,
+                monthlyQuarterInfo,
+                version: '1.0'
+            };
+            const dataStr = JSON.stringify(data);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'finance_app_data.json';
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        console.log('File content:', e.target.result);
+                        const importedData = JSON.parse(e.target.result);
+                        console.log('Parsed data:', importedData);
+                        
+                        if (importedData && importedData.version === '1.0') {
+                            monthlyShifts = importedData.monthlyShifts || {};
+                            monthlySpending = importedData.monthlySpending || {};
+                            monthlySalaryInfo = importedData.monthlySalaryInfo || {};
+                            holidayDoublePayDays = importedData.holidayDoublePayDays || {};
+                            monthlyQuarterInfo = importedData.monthlyQuarterInfo || {};
+                            
+                            saveData();
+                            renderCalendar();
+                            calculateSalary();
+                            updateDisplay();
+                            
+                            console.log('Data imported successfully');
+                            alert('Data imported successfully');
+                        } else {
+                            console.error('Invalid or incompatible data file');
+                            alert('Invalid or incompatible data file. Expected version 1.0, got: ' + (importedData ? importedData.version : 'undefined'));
+                        }
+                    } catch (error) {
+                        console.error('Error importing data:', error);
+                        alert('There was an error importing your data: ' + error.message + '\nPlease check the console for more details.');
+                    }
+                };
+                reader.onerror = function(e) {
+                    console.error('File reading error:', e);
+                    alert('Error reading the file. Please try again.');
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function createBackup() {
+            const backupData = localStorage.getItem('financeAppData');
+            if (backupData) {
+                const backupKey = `financeAppBackup_${new Date().toISOString()}`;
+                localStorage.setItem(backupKey, backupData);
+                alert('Backup created successfully');
+            } else {
+                alert('No data to backup');
+            }
+        }
+
+        function createCalendarLinks() {
+            const monthKey = getCurrentMonthKey();
+            const week = parseInt(document.getElementById('weekSelector').value);
+            const autoOpen = document.getElementById('autoOpenLinks').checked;
+            const links = [];
+
+            for (let day = 0; day < 7; day++) {
+                const shift = monthlyShifts[monthKey]?.[week]?.[day];
+                if (shift && shift !== 'off') {
+                    const date = new Date(currentYear, currentMonth, (week - 1) * 7 + day + 1);
+                    const [startTime, endTime] = shift.split(' - ');
+                    const [startHours, startMinutes] = startTime.split(':');
+                    const [endHours, endMinutes] = endTime.split(':');
+                    
+                    const startDate = new Date(date);
+                    startDate.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+                    
+                    const endDate = new Date(date);
+                    endDate.setHours(parseInt(endHours) + 12, parseInt(endMinutes), 0, 0); // Add 12 to convert to 24-hour format
+                    
+                    const formattedStartDate = startDate.toISOString().replace(/-|:|\.\d\d\d/g,"");
+                    const formattedEndDate = endDate.toISOString().replace(/-|:|\.\d\d\d/g,"");
+                    
+                    const eventTitle = `Work Shift: ${shift}`;
+                    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formattedStartDate}/${formattedEndDate}`;
+                    links.push(calendarUrl);
+                }
+            }
+
+            if (links.length > 0) {
+                if (autoOpen) {
+                    links.forEach(link => window.open(link, '_blank'));
+                } else {
+                    const linksDiv = document.createElement('div');
+                    linksDiv.innerHTML = links.map((link, index) => `
+                        <p>
+                            <a href="${link}" target="_blank">Add shift ${index + 1} to calendar</a>
+                        </p>
+                    `).join('');
+                    document.getElementById('calendarLinks').appendChild(linksDiv);
+                }
+            } else {
+                alert('No shifts set for this week');
+            }
+        }
+
+        // Add event listener for file import
+        document.getElementById('importFile').addEventListener('change', importData);
+
+        // Periodically create backups (e.g., every 24 hours)
+        setInterval(createBackup, 24 * 60 * 60 * 1000);
+
+        // Load data when the page loads
+        loadData();
+        fetchLebanonHolidays().then(() => {
+            renderCalendar();
+            calculateSalary();
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
