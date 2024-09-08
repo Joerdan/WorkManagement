@@ -294,9 +294,22 @@
                 white-space: nowrap;
                 width: 100%;
                 text-align: center;
+                margin-top: 2px;
             }
             .calendar-day .holiday-toggle {
                 font-size: 9px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-top: 2px;
+            }
+            .calendar-day .holiday-toggle input[type="checkbox"] {
+                width: 12px;
+                height: 12px;
+                margin-right: 2px;
+            }
+            .calendar-day .holiday-toggle label {
+                font-size: 8px;
             }
             .calendar-header {
                 font-size: 16px;
@@ -673,7 +686,7 @@
                         <input type="checkbox" id="holiday-${dateString}" 
                                ${holidayDoublePayDays[dateString] ? 'checked' : ''}
                                onchange="toggleHolidayDoublePay(new Date('${dateString}'))">
-                        <label for="holiday-${dateString}">Double Pay</label>
+                        <label for="holiday-${dateString}">2x</label>
                     </div>
                 ` : '';
                 
