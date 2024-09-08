@@ -157,6 +157,67 @@
             margin-top: 10px;
         }
 
+        /* Add these new styles for mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+            }
+            .container {
+                padding: 10px;
+            }
+            input, select, button {
+                width: 100%;
+                padding: 12px;
+                margin-bottom: 10px;
+                font-size: 16px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            h2 {
+                font-size: 20px;
+            }
+            #summary, #spendingList {
+                font-size: 14px;
+            }
+            #categoryChartContainer {
+                width: 100%;
+                height: 300px;
+            }
+            .calendar {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 2px;
+            }
+            .calendar-day {
+                padding: 5px;
+                font-size: 12px;
+                height: auto;
+                aspect-ratio: 1 / 1;
+            }
+            .calendar-day .day-of-week {
+                font-size: 10px;
+            }
+            .calendar-day .date {
+                font-size: 14px;
+            }
+            .calendar-day .shift-time {
+                font-size: 10px;
+            }
+            .calendar-day .holiday-name {
+                font-size: 8px;
+            }
+            .calendar-day .holiday-toggle {
+                font-size: 8px;
+            }
+            .calendar-header {
+                font-size: 18px;
+            }
+            .calendar-nav {
+                padding: 5px 10px;
+            }
+        }
+
         /* iPhone 13 specific styles */
         @media only screen 
         and (device-width: 390px) 
@@ -196,13 +257,13 @@
             }
             .calendar {
                 display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                gap: 1px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 5px;
                 margin-top: 15px;
             }
             .calendar-day {
-                padding: 2px;
-                font-size: 10px;
+                padding: 5px;
+                font-size: 12px;
                 aspect-ratio: 1 / 1;
                 display: flex;
                 flex-direction: column;
@@ -211,15 +272,15 @@
                 overflow: hidden;
             }
             .calendar-day .day-of-week {
-                font-size: 8px;
+                font-size: 10px;
                 align-self: flex-start;
             }
             .calendar-day .date {
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
             }
             .calendar-day .shift-time {
-                font-size: 8px;
+                font-size: 10px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -227,7 +288,7 @@
                 text-align: center;
             }
             .calendar-day .holiday-name {
-                font-size: 7px;
+                font-size: 9px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -235,7 +296,7 @@
                 text-align: center;
             }
             .calendar-day .holiday-toggle {
-                font-size: 7px;
+                font-size: 9px;
             }
             .calendar-header {
                 font-size: 16px;
@@ -625,6 +686,14 @@
                 `;
                 
                 calendarEl.appendChild(dayEl);
+            }
+
+            // Add empty cells at the end to complete the grid
+            const totalCells = Math.ceil((daysInMonth + firstDay) / 4) * 4;
+            for (let i = daysInMonth + firstDay; i < totalCells; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('calendar-day');
+                calendarEl.appendChild(emptyDay);
             }
         }
 
