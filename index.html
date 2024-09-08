@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Advanced Personal Finance Manager</title>
     <style>
         body {
@@ -157,19 +157,89 @@
             margin-top: 10px;
         }
 
-        /* Add these new styles for mobile responsiveness */
-        @media (max-width: 768px) {
+        /* iPhone 13 specific styles */
+        @media only screen 
+        and (device-width: 390px) 
+        and (device-height: 844px) 
+        and (-webkit-device-pixel-ratio: 3),
+        only screen and (max-width: 428px) {  /* This covers iPhone 12 Pro Max and similar sizes */
+            body {
+                font-size: 14px;
+            }
             .container {
                 padding: 10px;
             }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 15px;
+            }
+            h2 {
+                font-size: 20px;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
             input, select, button {
                 width: 100%;
+                padding: 12px;
                 margin-bottom: 10px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+            #summary, #spendingList {
+                font-size: 14px;
+                margin-top: 15px;
             }
             #categoryChartContainer {
                 width: 100%;
+                height: 250px;
+                margin-top: 20px;
+            }
+            .calendar {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 2px;
+                margin-top: 15px;
+            }
+            .calendar-day {
+                padding: 3px;
+                font-size: 10px;
                 height: auto;
                 aspect-ratio: 1 / 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            .calendar-day .day-of-week {
+                font-size: 8px;
+            }
+            .calendar-day .date {
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .calendar-day .shift-time {
+                font-size: 8px;
+            }
+            .calendar-day .holiday-name {
+                font-size: 7px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .calendar-day .holiday-toggle {
+                font-size: 7px;
+            }
+            .calendar-header {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            .calendar-nav {
+                padding: 5px 10px;
+            }
+            #calendarLinks button {
+                margin-top: 15px;
+            }
+            #calendarLinks label {
+                font-size: 14px;
             }
         }
     </style>
