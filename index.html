@@ -156,6 +156,22 @@
         #calendarLinks {
             margin-top: 10px;
         }
+
+        /* Add these new styles for mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            input, select, button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            #categoryChartContainer {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1 / 1;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
