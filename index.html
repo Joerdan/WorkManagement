@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -428,10 +429,53 @@
         let monthlyShifts = {};
         let monthlySpending = {};
         let monthlySalaryInfo = {};
-        let lebanonHolidays = [];
         let holidayDoublePayDays = {};
         let monthlyQuarterInfo = {};
         let categoryChart;
+
+        const holidays2024 = {
+            "New Year's Day": "2024-01-01",
+            "Easter Sunday": "2024-03-31",
+            "Eid al-Fitr (Day 1)": "2024-04-11",
+            "Eid al-Fitr (Day 2)": "2024-04-12",
+            "Labour Day": "2024-05-01",
+            "Orthodox Easter": "2024-05-05",
+            "Resistance and Liberation Day": "2024-05-25",
+            "Eid al-Adha (Day 1)": "2024-06-17",
+            "Eid al-Adha (Day 2)": "2024-06-18",
+            "Ashoura": "2024-07-17",
+            "Islamic New Year": "2024-07-19",
+            "Assumption Day": "2024-08-15",
+            "Prophet's Birthday": "2024-09-15",
+            "Independence Day": "2024-11-22",
+            "Christmas": "2024-12-25"
+        };
+
+        const holidays2025 = {
+            "New Year's Day": "2025-01-01",
+            "Eid al-Fitr (Day 1)": "2025-03-31",
+            "Eid al-Fitr (Day 2)": "2025-04-01",
+            "Easter Sunday": "2025-04-20",
+            "Orthodox Easter": "2025-04-27",
+            "Labour Day": "2025-05-01",
+            "Resistance and Liberation Day": "2025-05-25",
+            "Eid al-Adha (Day 1)": "2025-06-07",
+            "Eid al-Adha (Day 2)": "2025-06-08",
+            "Ashoura": "2025-07-06",
+            "Islamic New Year": "2025-07-08",
+            "Assumption Day": "2025-08-15",
+            "Prophet's Birthday": "2025-09-05",
+            "Independence Day": "2025-11-22",
+            "Christmas": "2025-12-25"
+        };
+
+        function fetchLebanonHolidays() {
+            const holidays = currentYear === 2024 ? holidays2024 : holidays2025;
+            return Object.entries(holidays).map(([name, date]) => ({
+                date: date,
+                name: name
+            }));
+        }
 
         function saveData() {
             try {
@@ -474,22 +518,6 @@
             return `${currentYear}-${currentMonth}`;
         }
 
-        async function fetchLebanonHolidays() {
-            const apiKey = '6pCMc7VjipQxVxOwVy0F5HyKBer0AhcT';
-            const url = `https://calendarific.com/api/v2/holidays?api_key=${apiKey}&country=LB&year=${currentYear}`;
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                lebanonHolidays = data.response.holidays.map(holiday => ({
-                    date: new Date(holiday.date.iso).toDateString(),
-                    name: holiday.name
-                }));
-            } catch (error) {
-                console.error('Error fetching Lebanon holidays:', error);
-            }
-        }
-
         function updateSalary() {
             const monthKey = getCurrentMonthKey();
             monthlySalaryInfo[monthKey] = monthlySalaryInfo[monthKey] || {};
@@ -508,6 +536,8 @@
             let holidayHours = 0;
 
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const holidays = fetchLebanonHolidays();
+
             for (let i = 1; i <= daysInMonth; i++) {
                 const date = new Date(currentYear, currentMonth, i);
                 const dayOfWeek = date.getDay();
@@ -515,9 +545,9 @@
                 const shift = monthlyShifts[monthKey]?.[weekOfMonth]?.[dayOfWeek] || '';
 
                 if (shift && shift !== 'off') {
-                    const isHoliday = lebanonHolidays.some(holiday => holiday.date === date.toDateString());
                     const dateString = date.toISOString().split('T')[0];
-                    if (isHoliday && holidayDoublePayDays[dateString]) {
+                    const isHoliday = holidays.some(holiday => holiday.date === dateString);
+                    if (isHoliday) {
                         holidayHours += salaryInfo.hoursPerShift;
                     } else {
                         regularHours += salaryInfo.hoursPerShift;
@@ -656,6 +686,8 @@
                 calendarEl.appendChild(emptyDay);
             }
             
+            const holidays = fetchLebanonHolidays();
+
             for (let i = 1; i <= daysInMonth; i++) {
                 const date = new Date(currentYear, currentMonth, i);
                 const dayEl = document.createElement('div');
@@ -665,7 +697,8 @@
                     dayEl.classList.add('weekend');
                 }
                 
-                const holiday = lebanonHolidays.find(h => h.date === date.toDateString());
+                const dateString = date.toISOString().split('T')[0];
+                const holiday = holidays.find(h => h.date === dateString);
                 if (holiday) {
                     dayEl.classList.add('holiday');
                 }
@@ -681,29 +714,18 @@
                     dayEl.classList.add('off-day');
                 }
                 
-                const dateString = date.toISOString().split('T')[0];
-                const holidayToggle = holiday ? `
-                    <div class="holiday-toggle">
-                        <input type="checkbox" id="holiday-${dateString}" 
-                               ${holidayDoublePayDays[dateString] ? 'checked' : ''}
-                               onchange="toggleHolidayDoublePay(new Date('${dateString}'))">
-                        <label for="holiday-${dateString}">2x</label>
-                    </div>
-                ` : '';
-                
                 dayEl.innerHTML = `
                     <div class="day-of-week">${weekdays[date.getDay()]}</div>
                     <div class="date">${i}</div>
                     ${holiday ? `<div class="holiday-name">${holiday.name}</div>` : ''}
                     <div class="shift-time">${shift}</div>
-                    ${holidayToggle}
                 `;
                 
                 calendarEl.appendChild(dayEl);
             }
 
             // Add empty cells at the end to complete the grid
-            const totalCells = Math.ceil((daysInMonth + firstDay) / 4) * 4;
+            const totalCells = Math.ceil((daysInMonth + firstDay) / 7) * 7;
             for (let i = daysInMonth + firstDay; i < totalCells; i++) {
                 const emptyDay = document.createElement('div');
                 emptyDay.classList.add('calendar-day');
@@ -720,11 +742,9 @@
                 currentMonth = 0;
                 currentYear++;
             }
-            fetchLebanonHolidays().then(() => {
-                renderCalendar();
-                calculateSalary();
-                updateDisplay();
-            });
+            renderCalendar();
+            calculateSalary();
+            updateDisplay();
         }
 
         function setWeeklyShift() {
@@ -739,13 +759,6 @@
             
             saveData();
             renderCalendar();
-            calculateSalary();
-            updateDisplay();
-        }
-
-        function toggleHolidayDoublePay(date) {
-            const dateString = date.toISOString().split('T')[0];
-            holidayDoublePayDays[dateString] = !holidayDoublePayDays[dateString];
             calculateSalary();
             updateDisplay();
         }
@@ -909,11 +922,9 @@
 
         // Load data when the page loads
         loadData();
-        fetchLebanonHolidays().then(() => {
-            renderCalendar();
-            calculateSalary();
-            updateDisplay();
-        });
+        renderCalendar();
+        calculateSalary();
+        updateDisplay();
     </script>
 </body>
 </html>
