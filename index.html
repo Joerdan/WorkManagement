@@ -1,333 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="style.css">
+    
     <title>Advanced Personal Finance Manager</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1, h2 {
-            color: #bb86fc;
-        }
-        input, select, button {
-            background-color: #333;
-            color: #e0e0e0;
-            border: 1px solid #555;
-            padding: 8px;
-            margin: 5px 0;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #03dac6;
-            color: #000;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #018786;
-        }
-        .category-select {
-            margin-bottom: 10px;
-            width: 100%;
-        }
-        .chart-container {
-            width: 100%;
-            height: 300px;
-            margin-top: 20px;
-            background-color: #333;
-            border-radius: 8px;
-            padding: 10px;
-        }
-        .delete-btn {
-            background-color: #cf6679;
-            color: #000;
-            margin-left: 10px;
-        }
-        .delete-btn:hover {
-            background-color: #b54a5a;
-        }
-        #summary, #spendingList {
-            background-color: #333;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        .calendar {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin-top: 20px;
-        }
-        .calendar-day {
-            background-color: #333;
-            padding: 10px;
-            text-align: center;
-            border-radius: 4px;
-            position: relative;
-            min-height: 60px;
-        }
-        .calendar-day .day-of-week {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            font-size: 10px;
-            color: #888;
-        }
-        .calendar-day .date {
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-        .calendar-day.weekend {
-            background-color: #444;
-        }
-        .calendar-day.holiday {
-            background-color: #bb86fc;
-            color: #000;
-        }
-        .calendar-day input[type="checkbox"] {
-            margin-top: 5px;
-        }
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .calendar-nav {
-            cursor: pointer;
-            font-size: 24px;
-        }
-        .calendar-day.current-day {
-            border: 2px solid #03dac6;
-        }
-        .calendar-day select {
-            margin-top: 5px;
-            width: 100%;
-        }
-        .holiday-name {
-            font-size: 10px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .shift-selector {
-            margin-bottom: 20px;
-        }
-        .shift-selector select {
-            margin-right: 10px;
-        }
-        .calendar-day .shift-time {
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        .calendar-day.off-day {
-            background-color: #cf6679;
-        }
-        .holiday-toggle {
-            font-size: 10px;
-            margin-top: 2px;
-        }
-        .holiday-toggle input {
-            margin-right: 2px;
-        }
-        .quarter-bonus {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #4CAF50;
-            border-radius: 5px;
-        }
-        #categoryChartContainer {
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
-        }
-        #calendarLinks {
-            margin-top: 10px;
-        }
-
-        /* Add these new styles for mobile responsiveness */
-        @media (max-width: 768px) {
-            body {
-                font-size: 16px;
-            }
-            .container {
-                padding: 10px;
-            }
-            input, select, button {
-                width: 100%;
-                padding: 12px;
-                margin-bottom: 10px;
-                font-size: 16px;
-            }
-            h1 {
-                font-size: 24px;
-            }
-            h2 {
-                font-size: 20px;
-            }
-            #summary, #spendingList {
-                font-size: 14px;
-            }
-            #categoryChartContainer {
-                width: 100%;
-                height: 300px;
-            }
-            .calendar {
-                display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                gap: 2px;
-            }
-            .calendar-day {
-                padding: 5px;
-                font-size: 12px;
-                height: auto;
-                aspect-ratio: 1 / 1;
-            }
-            .calendar-day .day-of-week {
-                font-size: 10px;
-            }
-            .calendar-day .date {
-                font-size: 14px;
-            }
-            .calendar-day .shift-time {
-                font-size: 10px;
-            }
-            .calendar-day .holiday-name {
-                font-size: 8px;
-            }
-            .calendar-day .holiday-toggle {
-                font-size: 8px;
-            }
-            .calendar-header {
-                font-size: 18px;
-            }
-            .calendar-nav {
-                padding: 5px 10px;
-            }
-        }
-
-        /* iPhone 13 specific styles */
-        @media only screen 
-        and (device-width: 390px) 
-        and (device-height: 844px) 
-        and (-webkit-device-pixel-ratio: 3),
-        only screen and (max-width: 428px) {  /* This covers iPhone 12 Pro Max and similar sizes */
-            body {
-                font-size: 14px;
-            }
-            .container {
-                padding: 10px;
-            }
-            h1 {
-                font-size: 24px;
-                margin-bottom: 15px;
-            }
-            h2 {
-                font-size: 20px;
-                margin-top: 20px;
-                margin-bottom: 10px;
-            }
-            input, select, button {
-                width: 100%;
-                padding: 8px;
-                margin-bottom: 8px;
-                font-size: 14px;
-                border-radius: 6px;
-            }
-            #summary, #spendingList {
-                font-size: 14px;
-                margin-top: 15px;
-            }
-            #categoryChartContainer {
-                width: 100%;
-                height: 250px;
-                margin-top: 20px;
-            }
-            .calendar {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 5px;
-                margin-top: 15px;
-            }
-            .calendar-day {
-                padding: 5px;
-                font-size: 12px;
-                aspect-ratio: 1 / 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                align-items: center;
-                overflow: hidden;
-            }
-            .calendar-day .day-of-week {
-                font-size: 10px;
-                align-self: flex-start;
-            }
-            .calendar-day .date {
-                font-size: 14px;
-                font-weight: bold;
-            }
-            .calendar-day .shift-time {
-                font-size: 10px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                width: 100%;
-                text-align: center;
-            }
-            .calendar-day .holiday-name {
-                font-size: 8px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                width: 100%;
-                text-align: center;
-                margin-top: 2px;
-                color: #ff0000; /* Make holiday names red for visibility */
-            }
-            .calendar-day .holiday-toggle {
-                font-size: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-top: 2px;
-            }
-            .calendar-day .holiday-toggle input[type="checkbox"] {
-                width: 10px;
-                height: 10px;
-                margin-right: 2px;
-            }
-            .calendar-day .holiday-toggle label {
-                font-size: 8px;
-            }
-            .calendar-header {
-                font-size: 16px;
-                margin-bottom: 10px;
-            }
-            .calendar-nav {
-                padding: 5px 10px;
-            }
-            #calendarLinks button {
-                margin-top: 15px;
-            }
-            #calendarLinks label {
-                font-size: 14px;
-            }
-        }
-    </style>
+  
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -530,15 +209,45 @@
         }
 
         function calculateSalary() {
+            // Determine the current month and year
             const monthKey = getCurrentMonthKey();
-            const salaryInfo = monthlySalaryInfo[monthKey] || {baseSalary: 0, workDays: 22, hoursPerShift: 8};
+            const currentDate = new Date(currentYear, currentMonth);
+            
+            // Adjust the month and year for the previous month's data
+            const previousMonthDate = new Date(currentYear, currentMonth - 1);
+            const previousMonthKey = `${previousMonthDate.getFullYear()}-${previousMonthDate.getMonth()}`;
+
+            // Get salary info for the current month
+            const salaryInfo = monthlySalaryInfo[monthKey] || { baseSalary: 0, workDays: 22, hoursPerShift: 8 };
             let regularHours = 0;
             let holidayHours = 0;
 
-            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const holidays = fetchLebanonHolidays();
+            // Calculate the number of days in the current month
+            const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            // Calculate the number of days in the previous month
+            const daysInPreviousMonth = new Date(currentYear, currentMonth, 0).getDate();
 
-            for (let i = 1; i <= daysInMonth; i++) {
+            // Loop through the previous month's data from the 25th to the end of the month
+            for (let i = 25; i <= daysInPreviousMonth; i++) {
+                const date = new Date(currentYear, currentMonth - 1, i);
+                const dayOfWeek = date.getDay();
+                const weekOfMonth = Math.ceil(i / 7);
+                const shift = monthlyShifts[previousMonthKey]?.[weekOfMonth]?.[dayOfWeek] || '';
+
+                if (shift && shift !== 'off') {
+                    const dateString = date.toISOString().split('T')[0];
+                    const isHoliday = fetchLebanonHolidays().some(holiday => holiday.date === dateString);
+                    if (isHoliday) {
+                        holidayHours += salaryInfo.hoursPerShift;
+                    } else {
+                        regularHours += salaryInfo.hoursPerShift;
+                    }
+                }
+            }
+
+            // Loop through the current month's data from the 1st to the 24th
+            for (let i = 1; i <= 24; i++) {
                 const date = new Date(currentYear, currentMonth, i);
                 const dayOfWeek = date.getDay();
                 const weekOfMonth = Math.ceil(i / 7);
@@ -546,7 +255,7 @@
 
                 if (shift && shift !== 'off') {
                     const dateString = date.toISOString().split('T')[0];
-                    const isHoliday = holidays.some(holiday => holiday.date === dateString);
+                    const isHoliday = fetchLebanonHolidays().some(holiday => holiday.date === dateString);
                     if (isHoliday) {
                         holidayHours += salaryInfo.hoursPerShift;
                     } else {
